@@ -4,7 +4,7 @@
 
 
 int main() {
-    Simulation sim = Simulation(1000, 10, 10, 0.01, 700, 10, 6);
+    Simulation sim = Simulation(1000, 100, 10, 0.01, 700, 3, 6);
     sim.run(10000);
 }
 

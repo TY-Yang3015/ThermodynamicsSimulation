@@ -10,7 +10,7 @@
 #include <iostream>
 
 // #include "glad/glad.h"  // GLAD must be included before GLFW
-#include <GLFW/glfw3.h> // GLFW for windowing and input
+// #include <GLFW/glfw3.h> // GLFW for windowing and input
 // #include "glm/glm.hpp"  // Core GLM functionality (vectors, matrices)
 // #include "glm/gtc/matrix_transform.hpp"  // For glm::translate, glm::rotate, glm::scale
 // #include "glm/gtc/type_ptr.hpp"
@@ -29,7 +29,7 @@ Simulation::Simulation(
     }
 
     simContainer = Container(containerRadius, 10000000.);
-        };
+        }
 
 Simulation::~Simulation() = default;
 
