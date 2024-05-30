@@ -5,6 +5,7 @@
 #include "Container.h"
 #include "Eigen/Dense"
 #include <cmath>
+#include <iostream>
 
 extern double posInf;
 
@@ -65,6 +66,7 @@ void Container::collide(Ball& other) {
 
     this->setVel(v1);
     other.setVel(v2);
+
 
 }
 

@@ -8,6 +8,8 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 // #include "glad/glad.h"  // GLAD must be included before GLFW
 // #include <GLFW/glfw3.h> // GLFW for windowing and input
@@ -104,7 +106,7 @@ void Simulation::nextCollision() {
         }
     }
 
-    std::vector<std::pair<Ball*, Container*>> collisionWithContainer;
+    std::vector<std::pair<Ball*, Ball*>> collisionWithContainer;
     for (size_t j = 0; j < ballList.size(); ++j) {
         dtCurrent = ballList[j].timeToCollision(simContainer);
         if (dtCurrent < dtNext) {
@@ -133,6 +135,68 @@ void Simulation::nextCollision() {
     }
 }
 
+void Simulation::nextTimeStep(double frameTime) {
+    double dtNext = frameTime;
+    double timeCount = frameTime;
+    std::vector<std::pair<Ball*, Ball*>> collisionBalls;
+    double dtCurrent;
+
+
+    while (timeCount > 0) {
+        for (size_t j = 0; j < ballList.size(); ++j) {
+            for (size_t i = j + 1; i < ballList.size(); ++i) { // Start from j+1 to avoid self-comparison and redundant checks
+                dtCurrent = ballList[j].timeToCollision(ballList[i]);
+
+                if (dtCurrent < dtNext) {
+                    dtNext = dtCurrent;
+                    collisionBalls.clear(); // Clear previous pairs
+                    collisionBalls.emplace_back(&ballList[j], &ballList[i]);
+                } else if (dtCurrent == dtNext) {
+                    // Check if the reversed pair is already in the list before adding
+                    // if (std::find(collisionBalls.begin(), collisionBalls.end(), std::make_pair(&ballList[i], &ballList[j])) == collisionBalls.end()) {
+                    collisionBalls.emplace_back(&ballList[j], &ballList[i]);
+                    //}
+                }
+            }
+        }
+
+        for (size_t j = 0; j < ballList.size(); ++j) {
+            dtCurrent = ballList[j].timeToCollision(simContainer);
+            if (dtCurrent < dtNext) {
+                collisionBalls.clear();
+                dtNext = dtCurrent;
+                collisionBalls.emplace_back(&ballList[j], &simContainer);
+            } else if (dtCurrent == dtNext) {
+                collisionBalls.emplace_back(&ballList[j], &simContainer);
+            }
+        }
+
+        if (!collisionBalls.empty()) {
+            for (size_t j = 0; j < collisionBalls.size(); ++j) {
+                for (size_t i = 0; i < ballList.size(); ++i) {
+                    ballList[i].Move(dtNext);
+                }
+                simContainer.Move(dtNext);
+                collisionBalls[j].second->collide(*collisionBalls[j].first);
+            }
+
+            timeCount -= dtNext;
+
+        } else {
+            for (size_t i = 0; i < ballList.size(); ++i) {
+                ballList[i].Move(timeCount);
+            }
+            simContainer.Move(timeCount);
+
+            break;
+        }
+
+        collisionBalls.clear();
+        dtNext = timeCount;
+    }
+
+}
+
 void drawCircle(float cx, float cy, float r, int num_segments) {
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy); // Center of circle
@@ -147,7 +211,6 @@ void drawCircle(float cx, float cy, float r, int num_segments) {
 }
 
 
-// Function to draw a hollow circle using OpenGL's legacy functions
 void drawHollowCircle(float cx, float cy, float radius, int num_segments) {
     glBegin(GL_LINE_LOOP);
     glColor3f(1.0f, 0.0f, 0.0f);
@@ -161,7 +224,7 @@ void drawHollowCircle(float cx, float cy, float radius, int num_segments) {
 }
 
 
-int Simulation::run(int numOfCollision) {
+int Simulation::runByCollision(int numOfCollision) {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
         return -1;
@@ -202,6 +265,59 @@ int Simulation::run(int numOfCollision) {
         glfwPollEvents();
 
         if (i == numOfCollision) {
+            break;
+        }
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    return 0;
+}
+
+
+
+int Simulation::runByTime(double time, int frame) {
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW\n";
+        return -1;
+    }
+
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Colliding Balls Simulation", NULL, NULL);
+    if (!window) {
+        std::cerr << "Failed to create GLFW window\n";
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+
+    // Set up viewport and orthogonal projection to match window size
+    glViewport(400, 400, 800, 800);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-1600, 1600.0, -1600, 1600.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    int i = 0;
+    double frameTime = time / frame;
+    while (!glfwWindowShouldClose(window)) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        nextTimeStep(frameTime); // Process the next step of the simulation
+
+        // Draw all elements
+        i++;
+        for (auto& ball : balls()) {
+            drawCircle(ball.getPos().x(), ball.getPos().y(), ball.getRadius(), 20);
+            drawHollowCircle(ball.getPos().x(), ball.getPos().y(), ball.getRadius(), 20);
+        }
+        drawHollowCircle(simContainer.getPos().x(), simContainer.getPos().y(),
+                         simContainer.getRadius(), 80);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+        if (i > frame) {
             break;
         }
     }

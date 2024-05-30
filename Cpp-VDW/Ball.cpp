@@ -35,50 +35,12 @@ void Ball::setVel(Eigen::Vector2d inputVel){
     Vel = std::move(inputVel);
 }
 
+void Ball::setPos(Eigen::Vector2d inputPos){
+    Pos = std::move(inputPos);
+}
+
 void Ball::Move(double dt) {
     Pos += Vel * dt;
-}
-
-double Ball::timeToCollision(const Ball& other) {
-    Eigen::Vector2d rDiff = this->getPos() - other.getPos();
-    Eigen::Vector2d vDiff = this->getVel() - other.getVel();
-    double radDiff = this->getRadius() + other.getRadius();
-
-    double det = Ball::determinant(rDiff, vDiff, radDiff);
-    if (det > 0) {
-        double dt = -sqrt(det);
-        dt -= rDiff.dot(vDiff);
-        dt *= 1 / vDiff.dot(vDiff);
-
-        if (dt > 0){
-            return dt;
-        } else {
-            return posInf;
-        }
-    } else {
-        return posInf;
-    }
-}
-
-double Ball::timeToCollision(const Container& other) {
-    Eigen::Vector2d rDiff = this->getPos() - other.getPos();
-    Eigen::Vector2d vDiff = this->getVel() - other.getVel();
-    double radDiff = this->getRadius() - other.getRadius();
-
-    double det = Ball::determinant(rDiff, vDiff, radDiff);
-    if (det > 0) {
-        double dt = sqrt(det);
-        dt -= rDiff.dot(vDiff);
-        dt *= 1 / vDiff.dot(vDiff);
-
-        if (dt > 0) {
-            return dt;
-        } else {
-            return posInf;
-        }
-    } else {
-        return posInf;
-    }
 }
 
 void Ball::collide(Ball& other) {
@@ -87,7 +49,7 @@ void Ball::collide(Ball& other) {
 
     Eigen::Vector2d v1 = this->getVel();
     v1 -= ((2. * other.getMass() / (this->getMass() + other.getMass()))
-            * (vDiff.dot(rDiff) / rDiff.dot(rDiff))) * rDiff;
+           * (vDiff.dot(rDiff) / rDiff.dot(rDiff))) * rDiff;
 
     Eigen::Vector2d v2 = other.getVel();
     v2 += ((2. * this->getMass() / (this->getMass() + other.getMass()))
@@ -100,14 +62,14 @@ void Ball::collide(Ball& other) {
 
 void Ball::collide(Container& other) {
 
-    Eigen::Vector2d rDiff = this->getPos() - other.getPos();
-    Eigen::Vector2d vDiff = this->getVel() - other.getVel();
+    Eigen::Vector2d rDiff = this->getPos();
+    Eigen::Vector2d vDiff = this->getVel();
 
     Eigen::Vector2d v1 = this->getVel();
     v1 -= ((2 * other.getMass() / (this->getMass() + other.getMass()))
            * (vDiff.dot(rDiff) / rDiff.dot(rDiff))) * rDiff;
 
-    Eigen::Vector2d v2 = other.getVel();
+    Eigen::Vector2d v2 = Eigen::Vector2d::Zero();
     v2 += ((2 * this->getMass() / (this->getMass() + other.getMass()))
            * (vDiff.dot(rDiff) / rDiff.dot(rDiff))) * rDiff;
 
@@ -116,6 +78,7 @@ void Ball::collide(Container& other) {
     other.addDp(dp.norm());
 
     this->setVel(v1);
-    other.setVel(v2);
+    // other.setVel(v2);
 
 }
+

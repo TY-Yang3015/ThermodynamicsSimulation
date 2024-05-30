@@ -12,6 +12,9 @@
 #include "GLFW/glfw3.h"
 
 class Simulation {
+
+    double phi0 = 10000;
+
 private:
     double containerRadius, ballRadius, ballSpeed, ballMass, rMax;
     int nRings, multi;
@@ -37,13 +40,15 @@ public:
 
     Container container ();
 
-    void nextCollision ();
-
-    int runByCollision(int numOfCollision);
-
     void nextTimeStep(double time);
 
-    int runByTime(double time, int frame);
+    int run(double time, int frame);
+
+    pair<Eigen::Vector2d, Eigen::Vector2d> verletUpdate(Ball& ball, const double& dt);
+
+    Eigen::Vector2d verletGlobalUpdate(const double& dt);
+
+    Eigen::Vector2d vdwForce (Ball& ball, const Eigen::Vector2d& currentPos);
 
     // double kineticEnergy ();
 
