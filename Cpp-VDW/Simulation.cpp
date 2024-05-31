@@ -2,6 +2,8 @@
 // Created by 杨天越 on 29/05/2024.
 //
 
+
+
 #include "Simulation.h"
 #include "Ball.h"
 #include "Container.h"
@@ -16,6 +18,8 @@
 // #include "glm/glm.hpp"  // Core GLM functionality (vectors, matrices)
 // #include "glm/gtc/matrix_transform.hpp"  // For glm::translate, glm::rotate, glm::scale
 // #include "glm/gtc/type_ptr.hpp"
+
+
 
 Simulation::Simulation(
         const double &containerRadius, const double &ballRadius, const double &ballSpeed,
@@ -65,9 +69,10 @@ Eigen::ArrayXXd Simulation::velocityInitialiser (int numOfBalls, double speed) {
     std::uniform_real_distribution<> distr(0.0, 2*M_PI); // Define the distribution
 
     std::vector<double> random_numbers;
+    random_numbers.reserve(numOfBalls);
     for (int i = 0; i < numOfBalls; ++i) {
-        random_numbers.push_back(distr(gen));
-    }
+            random_numbers.push_back(distr(gen));
+        }
 
     Eigen::ArrayXd angles = Eigen::Map<Eigen::VectorXd>(random_numbers.data(), random_numbers.size());
     velocityArray.col(0) = angles.cos() * speed;
@@ -149,18 +154,21 @@ Eigen::Vector2d Simulation::vdwForce (Ball& ball, const Eigen::Vector2d& current
 
 void Simulation::nextTimeStep(double frameTime) {
     for (size_t j = 0; j < ballList.size(); ++j) {
+        for (size_t i = j + 1; i < ballList.size(); ++i) { // Start from j+1 to avoid self-comparison and redundant checks
+            Eigen::Vector2d dist = (ballList[i].getPos() - ballList[j].getPos());
+            if ((dist.norm() > 0) && (dist.norm() < 2*ballList[j].getRadius())) {
+                ballList[j].setPos(-2*ballList[j].getRadius() * dist.normalized() + ballList[i].getPos());
+                ballList[j].collide(ballList[i]);
+            }
+        }
+
         if (ballList[j].getPos().norm() > simContainer.getRadius() - ballList[j].getRadius()) {
             //Eigen::Vector2d vr = (ballList[j].getPos()/ballList[j].getPos().norm()).dot(ballList[j].getVel())
             //                     * (ballList[j].getPos()/ballList[j].getPos().norm());
             //ballList[j].setVel(ballList[j].getVel() - 2.*vr);
             ballList[j].collide(simContainer);
+            ballList[j].setPos(ballList[j].getPos().normalized() * (simContainer.getRadius() - ballList[j].getRadius()));
 
-        }
-        for (size_t i = j + 1; i < ballList.size(); ++i) { // Start from j+1 to avoid self-comparison and redundant checks
-            double dist = (ballList[i].getPos() - ballList[j].getPos()).norm();
-            if ((dist > 0) && (dist < 2*ballList[j].getRadius())) {
-                ballList[j].collide(ballList[i]);
-            }
         }
     }
     this->verletGlobalUpdate(frameTime);
@@ -209,7 +217,7 @@ int Simulation::run(double time, int frame) {
     glfwMakeContextCurrent(window);
 
     // Set up viewport and orthogonal projection to match window size
-    glViewport(400, 400, 800, 800);
+    glViewport(0, 0, 1600, 1600);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1600, 1600.0, -1600, 1600.0, -1.0, 1.0);

@@ -238,8 +238,7 @@ int Simulation::runByCollision(int numOfCollision) {
     }
     glfwMakeContextCurrent(window);
 
-    // Set up viewport and orthogonal projection to match window size
-    glViewport(400, 400, 800, 800);
+    glViewport(0, 0, 1600, 1600);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1600, 1600.0, -1600, 1600.0, -1.0, 1.0);

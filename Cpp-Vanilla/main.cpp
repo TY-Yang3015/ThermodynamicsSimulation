@@ -4,7 +4,7 @@
 
 
 int main() {
-    Simulation sim = Simulation(1000, 10, 10, 0.01, 700, 6, 6);
+    Simulation sim = Simulation(1500, 10, 1000, 1, 1000, 4, 8);
     // sim.runByCollision(10000);
     sim.runByTime(10000, 100000);
 }
