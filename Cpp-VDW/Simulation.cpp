@@ -89,6 +89,10 @@ Container Simulation::container() {
     return simContainer;
 }
 
+void Simulation::setAttractionStrength (double phi) {
+    phi0 = phi;
+};
+
 pair<Eigen::Vector2d, Eigen::Vector2d> Simulation::verletUpdate(Ball& ball, const double& dt) {
 
     Eigen::Vector2d pHalf, rFinal, pFinal;

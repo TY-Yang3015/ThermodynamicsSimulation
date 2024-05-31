@@ -50,6 +50,8 @@ public:
 
     Eigen::Vector2d vdwForce (Ball& ball, const Eigen::Vector2d& currentPos);
 
+    void setAttractionStrength (double phi);
+
     // double kineticEnergy ();
 
     // Eigen::Vector2d momentum ();
