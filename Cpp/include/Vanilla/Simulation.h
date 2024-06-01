@@ -2,19 +2,25 @@
 // Created by 杨天越 on 29/05/2024.
 //
 
-#ifndef CPP_SIMULATION_H
-#define CPP_SIMULATION_H
+#pragma once
 
-#include "Eigen/Dense"
-#include <vector>
 #include "Container.h"
 #include "Ball.h"
 #include "GLFW/glfw3.h"
+#include <vector>
 
 class Simulation {
 private:
     double containerRadius, ballRadius, ballSpeed, ballMass, rMax;
     int nRings, multi;
+
+    bool logSystemMacro, logSystemMicro = false;
+
+    string currentFolder;
+
+    double currentTime, numOfCollision = 0;
+
+    const double kb = 1.380649e-23;
 
     vector<Ball> ballList;
 
@@ -45,22 +51,34 @@ public:
 
     int runByTime(double time, int frame);
 
-    // double kineticEnergy ();
+    double kineticEnergy ();
 
-    // Eigen::Vector2d momentum ();
+    Eigen::Vector2d momentum ();
 
-    // double time ();
+    [[nodiscard]] double time () const;
 
-    // double pressure ();
+    double pressure ();
 
-    // double tEquipartition ();
+    double tEquipartition ();
 
-    // double tIdeal ();
+    double tIdeal ();
 
-    // Eigen::Vector2d speeds ();
+    vector<double> speeds ();
 
+    void recordSimulationSpecs ();
+
+    vector<Eigen::Vector2d> ballVelocities();
+
+    vector<Eigen::Vector2d> ballPositions();
+
+    void logSystemMacroInformation ();
+
+    void logSystemMicroInformation ();
+
+    void logSystemChronology ();
+
+    void setSystemLog (const bool& micro, const bool& macro);
+
+    void writeMacroLogHeader ();
 
 };
-
-
-#endif //CPP_SIMULATION_H
