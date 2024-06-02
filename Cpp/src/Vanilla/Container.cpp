@@ -4,6 +4,7 @@
 
 #include "Container.h"
 #include <cmath>
+#include <iostream>
 
 extern double posInf;
 
@@ -62,11 +63,14 @@ void Container::collide(Ball& other) {
     dpChange *= this->getMass();
     this->addDp(dpChange.norm());
 
+
     this->setVel(v1);
     other.setVel(v2);
 
 
 }
+
+
 
 double Container::volume() {
     return pow(this->getRadius(), 2) * M_PI;

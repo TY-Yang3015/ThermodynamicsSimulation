@@ -241,11 +241,24 @@ int Simulation::runByCollision(int numOfCollision) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    if (logSystemMacro) {
+        writeMacroLogHeader();
+    }
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         nextCollision();
+
+        if (logSystemMicro) {
+            this->logSystemMicroInformation();
+        }
+
+        if (logSystemMacro) {
+            this->logSystemMacroInformation();
+        }
+
+        this->logSystemChronology();
 
         i += 1;
         for (auto& ball : balls()) {
@@ -387,10 +400,10 @@ double Simulation::kineticEnergy() {
 Eigen::Vector2d Simulation::momentum() {
     Eigen::Vector2d momenta = Eigen::Vector2d::Zero();
     for (auto& ball: ballList) {
-        momenta += ball.getVel() * ball.getMass();
+        momenta += (ball.getVel() * ball.getMass());
     }
 
-    momenta += simContainer.getVel() * simContainer.getMass();
+    momenta += (simContainer.getVel() * simContainer.getMass());
 
     return momenta;
 }
@@ -434,7 +447,8 @@ void Simulation::writeMacroLogHeader () {
     macroHeader.emplace_back("pressure");
     macroHeader.emplace_back("t_equipartition");
     macroHeader.emplace_back("t_ideal");
-    macroHeader.emplace_back("total_momentum");
+    macroHeader.emplace_back("total_momentum_x");
+    macroHeader.emplace_back("total_momentum_y");
     macroHeader.emplace_back("total_ke");
 
     writeCSVHeader(currentFolder + "/macro_information.csv", macroHeader);
@@ -449,7 +463,8 @@ void Simulation::logSystemMacroInformation() {
     MacroInformation.push_back(this->pressure());
     MacroInformation.push_back(this->tEquipartition());
     MacroInformation.push_back(this->tIdeal());
-    MacroInformation.push_back(this->momentum().norm());
+    MacroInformation.push_back(this->momentum().x());
+    MacroInformation.push_back(this->momentum().y());
     MacroInformation.push_back(this->kineticEnergy());
 
     writeDoublesToCSV(currentFolder + "/macro_information.csv", MacroInformation);

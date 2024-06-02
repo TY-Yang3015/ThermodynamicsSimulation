@@ -172,19 +172,19 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/Vanilla/Ball.cpp",
+			"path" : "src/LJ/Ball.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/Vanilla/Container.cpp",
+			"path" : "src/LJ/Container.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/Vanilla/Simulation.cpp",
+			"path" : "src/LJ/Simulation.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

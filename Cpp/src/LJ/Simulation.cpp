@@ -5,6 +5,7 @@
 #include "Simulation.h"
 #include "Ball.h"
 #include "Container.h"
+#include "../util/Utils.h"
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -111,6 +112,8 @@ Eigen::Vector2d Simulation::verletGlobalUpdate(const double& dt) {
     }
 }
 
+
+
 Eigen::Vector2d Simulation::vdwForce (Ball& ball, const Eigen::Vector2d& currentPos){
     Eigen::Vector2d force = Eigen::Vector2d::Zero();
     Eigen::Vector2d r;
@@ -120,13 +123,16 @@ Eigen::Vector2d Simulation::vdwForce (Ball& ball, const Eigen::Vector2d& current
             r = ballList[i].getPos() - currentPos;
 
 
-            force += (6 * phi0 / ball.getRadius())
-                         * pow((ball.getRadius() / r.norm()), 7)
-                         * (r / r.norm());
+            force += (6 / (ball.getRadius() * 2))
+                     * pow(((2 * ball.getRadius()) / r.norm()), 7)
+                     * (r / r.norm());
 
-            force -= (12 * phi0 / ball.getRadius())
-                         * pow((ball.getRadius() / r.norm()), 13)
-                         * (r / r.norm());
+            force -= (12 / (ball.getRadius() * 2))
+                     * pow(((2 * ball.getRadius()) / r.norm()), 13)
+                     * (r / r.norm());
+
+            force *= 4 * phi0;
+
         }
     }
 
@@ -146,6 +152,8 @@ void Simulation::nextTimeStep(double frameTime) {
         }
     }
     this->verletGlobalUpdate(frameTime);
+
+    currentTime += frameTime;
 }
 
 void drawCircle(float cx, float cy, float r, int num_segments) {
@@ -198,12 +206,26 @@ int Simulation::run(double time, int frame) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    if (logSystemMacro) {
+        writeMacroLogHeader();
+    }
+
     int i = 0;
     double frameTime = time / frame;
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         nextTimeStep(frameTime); // Process the next step of the simulation
+
+        if (logSystemMicro) {
+            this->logSystemMicroInformation();
+        }
+
+        if (logSystemMacro) {
+            this->logSystemMacroInformation();
+        }
+
+        this->logSystemChronology();
 
         // Draw all elements
         i++;
@@ -225,4 +247,185 @@ int Simulation::run(double time, int frame) {
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+}
+
+
+double Simulation::time() const {
+    return this->currentTime;
+}
+
+double Simulation::pressure() {
+    double momenta = abs(simContainer.dpTot()) / this->time();
+    momenta /= simContainer.surfaceArea();
+
+    return momenta;
+}
+
+vector<double> Simulation::speeds() {
+    vector<double> speedList;
+    speedList.reserve(ballList.size());
+    for (const auto & ball : ballList) {
+        speedList.emplace_back(ball.getVel().norm());
+    }
+
+    return speedList;
+
+}
+
+double Simulation::tEquipartition() {
+    double kineticEnergy = 0.;
+    for (auto& ball : ballList) {
+        kineticEnergy += 0.5 * ball.getMass() * ball.getVel().dot(ball.getVel());
+    }
+    return kineticEnergy/double(ballList.size())/this->kb;
+}
+
+double Simulation::tIdeal() {
+    double pV = this->pressure() * this->container().volume();
+    double Nk = double(ballList.size()) * this->kb;
+
+    return pV/Nk;
+}
+
+double Simulation::kineticEnergy() {
+    double kineticEnergy = 0;
+    for (auto& ball: ballList) {
+        kineticEnergy += ball.getVel().dot(ball.getVel()) * ball.getMass() * 0.5;
+    }
+
+    kineticEnergy += simContainer.getVel().dot(simContainer.getVel()) * simContainer.getMass() * 0.5;
+
+    return kineticEnergy;
+}
+
+Eigen::Vector2d Simulation::momentum() {
+    Eigen::Vector2d momenta = Eigen::Vector2d::Zero();
+    for (auto& ball: ballList) {
+        momenta += ball.getVel() * ball.getMass();
+    }
+
+    momenta += simContainer.getVel() * simContainer.getMass();
+
+    return momenta;
+}
+
+vector<Eigen::Vector2d> Simulation::ballVelocities() {
+    vector<Eigen::Vector2d> velList;
+    velList.reserve(ballList.size());
+    for (const auto & ball : ballList) {
+        velList.emplace_back(ball.getVel());
+    }
+
+    return velList;
+
+}
+
+vector<Eigen::Vector2d> Simulation::ballPositions() {
+    vector<Eigen::Vector2d> posList;
+    posList.reserve(ballList.size());
+    for (const auto & ball : ballList) {
+        posList.emplace_back(ball.getPos());
+    }
+
+    return posList;
+
+}
+
+void Simulation::setSystemLog(const bool &micro, const bool &macro) {
+    this->logSystemMicro = micro;
+    this->logSystemMacro = macro;
+}
+
+void Simulation::writeMacroLogHeader () {
+
+    if (currentFolder.empty()) {
+        cout << "you are advised to register the simulation spec. " << endl;
+        this->currentFolder = createSimulationFolder();
+    }
+
+    vector<std::string> macroHeader;
+    macroHeader.reserve(5);
+    macroHeader.emplace_back("pressure");
+    macroHeader.emplace_back("t_equipartition");
+    macroHeader.emplace_back("t_ideal");
+    macroHeader.emplace_back("total_momentum_x");
+    macroHeader.emplace_back("total_momentum_y");
+    macroHeader.emplace_back("total_ke");
+
+    writeCSVHeader(currentFolder + "/macro_information.csv", macroHeader);
+}
+
+void Simulation::logSystemMacroInformation() {
+
+
+    vector<double> MacroInformation;
+
+    MacroInformation.reserve(6);
+    MacroInformation.push_back(this->pressure());
+    MacroInformation.push_back(this->tEquipartition());
+    MacroInformation.push_back(this->tIdeal());
+    Eigen::Vector2d totMom = momentum();
+    MacroInformation.push_back(totMom.x());
+    MacroInformation.push_back(totMom.y());
+    MacroInformation.push_back(this->kineticEnergy());
+
+    writeDoublesToCSV(currentFolder + "/macro_information.csv", MacroInformation);
+
+}
+
+void Simulation::logSystemMicroInformation() {
+
+    if (currentFolder.empty()) {
+        cout << "you are advised to register the simulation spec. " << endl;
+        this->currentFolder = createSimulationFolder();
+    }
+
+    vector<Eigen::Vector2d> velocities = ballVelocities();
+    vector<Eigen::Vector2d> positions = ballPositions();
+
+
+    writeVectorsToCSV(currentFolder + "/ball_velocities.csv", velocities);
+    writeVectorsToCSV(currentFolder + "/ball_positions.csv", positions);
+
+    velocities.clear();
+    velocities.push_back(container().getVel());
+    positions.clear();
+    positions.push_back(container().getPos());
+
+    writeVectorsToCSV(currentFolder + "/container_velocities.csv", velocities);
+    writeVectorsToCSV(currentFolder + "/container_positions.csv", positions);
+
+
+}
+
+void Simulation::logSystemChronology() {
+    vector<double> chrono;
+    chrono.push_back(time());
+
+    writeDoublesToCSV(currentFolder + "/system_event_track.csv", chrono);
+}
+
+void Simulation::recordSimulationSpecs() {
+    vector<string> specHeaders;
+    vector<double> specValues;
+
+    currentFolder = createSimulationFolder();
+
+    specHeaders.emplace_back("containerRadius");
+    specValues.emplace_back(containerRadius);
+    specHeaders.emplace_back("ballRadius");
+    specValues.emplace_back(ballRadius);
+    specHeaders.emplace_back("ballSpeed");
+    specValues.emplace_back(ballSpeed);
+    specHeaders.emplace_back("ballMass");
+    specValues.emplace_back(ballMass);
+    specHeaders.emplace_back("numOfBalls");
+    specValues.emplace_back(double(ballList.size()));
+    specHeaders.emplace_back("attractionStrength");
+    specValues.emplace_back(phi0);
+
+    writeCSVHeader(currentFolder+"/lj_simulation_spec.csv", specHeaders);
+    writeDoublesToCSV(currentFolder+"/lj_simulation_spec.csv", specValues);
+
+    cout << "system spec registered." << endl;
 }

@@ -10,6 +10,7 @@
 #include "Container.h"
 #include "Ball.h"
 #include "GLFW/glfw3.h"
+#include "../util/Utils.h"
 
 class Simulation {
 
@@ -22,6 +23,15 @@ private:
     vector<Ball> ballList;
 
     Container simContainer = Container(0, 0);
+
+    double currentTime = 0;
+    double numOfCollision = 0;
+
+    bool logSystemMicro, logSystemMacro = false;
+
+    std::string currentFolder;
+
+    const double kb = 1.380649e-23;
 
     static Eigen::ArrayXXd positionInitialiser (double rMax, int nRings, int multi);
 
@@ -52,20 +62,35 @@ public:
 
     void setAttractionStrength (double phi);
 
-    // double kineticEnergy ();
+    double kineticEnergy ();
 
-    // Eigen::Vector2d momentum ();
+    Eigen::Vector2d momentum ();
 
-    // double time ();
+    [[nodiscard]] double time () const;
 
-    // double pressure ();
+    double pressure ();
 
-    // double tEquipartition ();
+    double tEquipartition ();
 
-    // double tIdeal ();
+    double tIdeal ();
 
-    // Eigen::Vector2d speeds ();
+    vector<double> speeds ();
 
+    void recordSimulationSpecs ();
+
+    vector<Eigen::Vector2d> ballVelocities();
+
+    vector<Eigen::Vector2d> ballPositions();
+
+    void logSystemMacroInformation ();
+
+    void logSystemMicroInformation ();
+
+    void logSystemChronology ();
+
+    void setSystemLog (const bool& micro, const bool& macro);
+
+    void writeMacroLogHeader ();
 
 };
 
