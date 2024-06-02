@@ -2,8 +2,7 @@
 // Created by 杨天越 on 29/05/2024.
 //
 
-#ifndef CPP_SIMULATION_H
-#define CPP_SIMULATION_H
+#pragma once
 
 #include "Eigen/Dense"
 #include <vector>
@@ -53,7 +52,7 @@ public:
 
     pair<Eigen::Vector2d, Eigen::Vector2d> verletUpdate(Ball& ball, const double& dt);
 
-    Eigen::Vector2d verletGlobalUpdate(const double& dt);
+    void verletGlobalUpdate(const double& dt);
 
     Eigen::Vector2d vdwForce (Ball& ball, const Eigen::Vector2d& currentPos);
 
@@ -93,4 +92,4 @@ public:
 };
 
 
-#endif //CPP_SIMULATION_H
+

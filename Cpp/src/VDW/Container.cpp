@@ -5,9 +5,7 @@
 #include "Container.h"
 #include "Eigen/Dense"
 #include <cmath>
-#include <iostream>
 
-extern double posInf;
 
 Eigen::Vector2d initialVel = {0, 0};
 Eigen::Vector2d initialPos = {0, 0};
@@ -22,7 +20,7 @@ void Container::addDp(double increDp) {
     dp += increDp;
 }
 
-double Container::dpTot() {
+double Container::dpTot() const {
     return dp;
 }
 

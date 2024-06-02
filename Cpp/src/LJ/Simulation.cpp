@@ -9,8 +9,6 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
 
 Simulation::Simulation(
         const double &containerRadius, const double &ballRadius, const double &ballSpeed,
@@ -20,7 +18,7 @@ Simulation::Simulation(
         rMax(rMax), nRings(nRings), multi(multi)
         {
     Eigen::ArrayXXd positions = Simulation::positionInitialiser(rMax, nRings, multi);
-    Eigen::ArrayXXd velocities = Simulation::velocityInitialiser(positions.rows(), ballSpeed);
+    Eigen::ArrayXXd velocities = Simulation::velocityInitialiser(int(positions.rows()), ballSpeed);
     for (int i = 0; i < positions.rows(); i++){
         ballList.emplace_back(positions.row(i), velocities.row(i), ballRadius, ballMass);
     }
@@ -32,7 +30,7 @@ Simulation::~Simulation() = default;
 
 Eigen::ArrayXXd Simulation::positionInitialiser(double rMax, int nRings, int multi) {
     int numOfBalls = (multi + nRings * multi) * nRings / 2;
-    Eigen::ArrayXXd positionArray(numOfBalls, 2);  // Create a 2D array to store positions
+    Eigen::ArrayXXd positionArray(numOfBalls, 2);
 
     double radialIncrement = rMax / nRings;
 
@@ -43,9 +41,9 @@ Eigen::ArrayXXd Simulation::positionInitialiser(double rMax, int nRings, int mul
         radius = radialIncrement * i;
 
         for (int j = 0; j < multi * i; j++) {
-            theta = angularIncrement * j;  // Calculate the current angle
-            positionArray(k, 0) = radius * std::cos(theta);  // X coordinate
-            positionArray(k, 1) = radius * std::sin(theta);  // Y coordinate
+            theta = angularIncrement * j;
+            positionArray(k, 0) = radius * std::cos(theta);
+            positionArray(k, 1) = radius * std::sin(theta);
             k++;
         }
     }
@@ -55,16 +53,17 @@ Eigen::ArrayXXd Simulation::positionInitialiser(double rMax, int nRings, int mul
 Eigen::ArrayXXd Simulation::velocityInitialiser (int numOfBalls, double speed) {
     Eigen::ArrayXXd velocityArray(numOfBalls, 2);
 
-    std::random_device rd;  // Obtain a random number from hardware
-    std::mt19937 gen(rd()); // Seed the generator
-    std::uniform_real_distribution<> distr(0.0, 2*M_PI); // Define the distribution
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> distr(0.0, 2*M_PI);
 
     std::vector<double> random_numbers;
+    random_numbers.reserve(numOfBalls);
     for (int i = 0; i < numOfBalls; ++i) {
         random_numbers.push_back(distr(gen));
     }
 
-    Eigen::ArrayXd angles = Eigen::Map<Eigen::VectorXd>(random_numbers.data(), random_numbers.size());
+    Eigen::ArrayXd angles = Eigen::Map<Eigen::VectorXd>(random_numbers.data(), Eigen::Index(random_numbers.size()));
     velocityArray.col(0) = angles.cos() * speed;
     velocityArray.col(1) = angles.sin() * speed;
 
@@ -98,7 +97,7 @@ pair<Eigen::Vector2d, Eigen::Vector2d> Simulation::verletUpdate(Ball& ball, cons
 
 }
 
-Eigen::Vector2d Simulation::verletGlobalUpdate(const double& dt) {
+void Simulation::verletGlobalUpdate(const double& dt) {
     std::vector<Eigen::Vector2d> newVelocities, newPositions;
     for (size_t i = 0; i < this->balls().size(); ++i) {
         auto update = this->verletUpdate(this->ballList[i], dt);
@@ -143,9 +142,6 @@ void Simulation::nextTimeStep(double frameTime) {
 
     for (auto & j : ballList) {
         if (j.getPos().norm() > simContainer.getRadius() - j.getRadius()) {
-            //Eigen::Vector2d vr = (ballList[j].getPos()/ballList[j].getPos().norm()).dot(ballList[j].getVel())
-            //                     * (ballList[j].getPos()/ballList[j].getPos().norm());
-            //ballList[j].setVel(ballList[j].getVel() - 2.*vr);
             j.collide(simContainer);
             j.setPos(j.getPos().normalized() * (simContainer.getRadius() - j.getRadius()));
 
@@ -156,32 +152,6 @@ void Simulation::nextTimeStep(double frameTime) {
     currentTime += frameTime;
 }
 
-void drawCircle(float cx, float cy, float r, int num_segments) {
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(cx, cy); // Center of circle
-    glColor3f(1.0f, 1.0f, 1.0f);
-    for(int i = 0; i <= num_segments; i++) {
-        float theta = 2.0f * 3.1415926f * float(i) / float(num_segments);
-        float x = r * cosf(theta);
-        float y = r * sinf(theta);
-        glVertex2f(x + cx, y + cy);
-    }
-    glEnd();
-}
-
-
-void drawHollowCircle(float cx, float cy, float radius, int num_segments) {
-    glBegin(GL_LINE_LOOP);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    for (int i = 0; i < num_segments; i++) {
-        float theta = 2.0f * M_PI * float(i) / float(num_segments); // Current angle
-        float x = radius * cosf(theta); // Calculate the x component
-        float y = radius * sinf(theta); // Calculate the y component
-        glVertex2f(x + cx, y + cy); // Output vertex
-    }
-    glEnd(); // End of GL_LINE_LOOP
-}
-
 
 
 int Simulation::run(double time, int frame) {
@@ -190,7 +160,7 @@ int Simulation::run(double time, int frame) {
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Colliding Balls Simulation", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Colliding Balls Simulation", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -215,7 +185,7 @@ int Simulation::run(double time, int frame) {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        nextTimeStep(frameTime); // Process the next step of the simulation
+        nextTimeStep(frameTime);
 
         if (logSystemMicro) {
             this->logSystemMicroInformation();
@@ -227,7 +197,6 @@ int Simulation::run(double time, int frame) {
 
         this->logSystemChronology();
 
-        // Draw all elements
         i++;
         for (auto& ball : balls()) {
             drawCircle(ball.getPos().x(), ball.getPos().y(), ball.getRadius(), 20);

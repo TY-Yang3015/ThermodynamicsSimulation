@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include "Ball.h"
 #include "Eigen/Dense"
 
@@ -28,7 +29,7 @@ public:
 
     void addDp (double dp);
 
-    [[nodiscard]] double dpTot ();
+    [[nodiscard]] double dpTot () const;
 
     double volume ();
 

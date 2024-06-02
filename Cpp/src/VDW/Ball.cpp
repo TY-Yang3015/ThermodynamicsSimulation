@@ -5,10 +5,6 @@
 #include "Ball.h"
 #include "Container.h"
 #include <utility>
-#include <limits>
-#include <iostream>
-
-double posInf = std::numeric_limits<double>::infinity();
 
 Ball::Ball(Eigen::Vector2d Pos, Eigen::Vector2d Vel, const double& Radius, const double& Mass) :
 Pos(std::move(Pos)), Vel(std::move(Vel)), Radius(Radius), Mass(Mass) {};

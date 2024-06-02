@@ -5,9 +5,6 @@
 #include "Container.h"
 #include "Eigen/Dense"
 #include <cmath>
-#include <iostream>
-
-extern double posInf;
 
 Eigen::Vector2d initialVel = {0, 0};
 Eigen::Vector2d initialPos = {0, 0};
@@ -25,8 +22,6 @@ void Container::addDp(double increDp) {
 double Container::dpTot() {
     return dp;
 }
-
-
 
 double Container::volume() {
     return pow(this->getRadius(), 2) * M_PI;

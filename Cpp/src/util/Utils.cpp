@@ -4,6 +4,7 @@
 
 #include "Utils.h"
 #include "Eigen/Dense"
+#include "GLFW/glfw3.h"
 #include <fstream>
 #include <vector>
 #include <iostream>
@@ -13,25 +14,20 @@
 #include <iomanip>
 
 void writeDoublesToCSV(const std::string& filename, const std::vector<double>& data) {
-    // Open file in append mode
     std::ofstream file(filename, std::ios::app);
 
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "error: could not open file " << filename << std::endl;
         return;
     }
 
-    // Check if the file is empty to determine if a newline is needed
-    if (file.tellp() != 0) { // File pointer is not at the start, hence file is not empty
+    if (file.tellp() != 0) {
         file << std::endl;
     }
 
-    // Check if data is not empty to avoid trailing comma issues
     if (!data.empty()) {
         auto it = data.begin();
-        // Write the first element without a leading comma
         file << *it;
-        // Write the rest of the elements with a leading comma
         for (++it; it != data.end(); ++it) {
             file << "," << *it;
         }
@@ -41,25 +37,20 @@ void writeDoublesToCSV(const std::string& filename, const std::vector<double>& d
 }
 
 void writeCSVHeader(const std::string& filename, const std::vector<std::string>& header) {
-    // Open file in append mode
     std::ofstream file(filename, std::ios::app);
 
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "error: could not open file " << filename << std::endl;
         return;
     }
 
-    // Check if the file is empty to determine if a newline is needed
-    if (file.tellp() != 0) { // File pointer is not at the start, hence file is not empty
+    if (file.tellp() != 0) {
         file << std::endl;
     }
 
-    // Check if header is not empty to avoid trailing comma issues
     if (!header.empty()) {
         auto it = header.begin();
-        // Write the first element without a leading comma
         file << *it;
-        // Write the rest of the elements with a leading comma
         for (++it; it != header.end(); ++it) {
             file << "," << *it;
         }
@@ -69,23 +60,19 @@ void writeCSVHeader(const std::string& filename, const std::vector<std::string>&
 }
 
 void writeVectorsToCSV(const std::string& filename, const std::vector<Eigen::Vector2d>& data) {
-    // Open file in append mode
     std::ofstream file(filename, std::ios::app);
 
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        std::cerr << "error: could not open file " << filename << std::endl;
         return;
     }
 
-    // Check if the file is empty to determine if a newline is needed
-    if (file.tellp() != 0) { // File pointer is not at the start, hence file is not empty
+    if (file.tellp() != 0) {
         file << std::endl;
     }
 
-    // Check if data is not empty to avoid trailing comma issues
     if (!data.empty()) {
         for (auto it = data.begin(); it != data.end(); ++it) {
-            // Write each vector's components wrapped in brackets and separated by a comma
             if (it != data.begin()) {
                 file << ",";
             }
@@ -100,19 +87,15 @@ void writeVectorsToCSV(const std::string& filename, const std::vector<Eigen::Vec
 std::string createSimulationFolder() {
     namespace fs = std::filesystem;
 
-    // Get the current time
     auto now = std::chrono::system_clock::now();
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
     std::tm bt = *std::localtime(&time_t_now);
 
-    // Create a time string from the current time
     std::ostringstream oss;
     oss << std::put_time(&bt, "%Y-%m-%d_%H-%M-%S") << "Simulation";
 
-    // Construct the directory path
     fs::path dir = fs::path("../bin/") / oss.str();
 
-    // Check if the directory exists
     if (!fs::exists(dir)) {
         // Create the directory
         if (fs::create_directory(dir)) {
@@ -128,3 +111,28 @@ std::string createSimulationFolder() {
 }
 
 
+void drawCircle(double cx, double cy, double r, int num_segments) {
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2d(cx, cy);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    for(int i = 0; i <= num_segments; i++) {
+        double theta = 2. * M_PI * i / num_segments;
+        double x = r * cos(theta);
+        double y = r * sin(theta);
+        glVertex2d(x + cx, y + cy);
+    }
+    glEnd();
+}
+
+
+void drawHollowCircle(double cx, double cy, double radius, int num_segments) {
+    glBegin(GL_LINE_LOOP);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    for (int i = 0; i < num_segments; i++) {
+        double theta = 2. * M_PI * i / num_segments;
+        double x = radius * cos(theta);
+        double y = radius * sin(theta);
+        glVertex2d(x + cx, y + cy);
+    }
+    glEnd();
+}

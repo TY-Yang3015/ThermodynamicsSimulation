@@ -193,34 +193,8 @@ void Simulation::nextTimeStep(double frameTime) {
     currentTime += frameTime;
 }
 
-void drawCircle(double cx, double cy, double r, int num_segments) {
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2d(cx, cy);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    for(int i = 0; i <= num_segments; i++) {
-        double theta = 2. * M_PI * i / num_segments;
-        double x = r * cos(theta);
-        double y = r * sin(theta);
-        glVertex2d(x + cx, y + cy);
-    }
-    glEnd();
-}
 
-
-void drawHollowCircle(double cx, double cy, double radius, int num_segments) {
-    glBegin(GL_LINE_LOOP);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    for (int i = 0; i < num_segments; i++) {
-        double theta = 2. * M_PI * i / num_segments;
-        double x = radius * cos(theta);
-        double y = radius * sin(theta);
-        glVertex2d(x + cx, y + cy);
-    }
-    glEnd();
-}
-
-
-int Simulation::runByCollision(int numOfCollision) {
+int Simulation::runByCollision(int simNumOfCollision) {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
         return -1;
@@ -271,7 +245,7 @@ int Simulation::runByCollision(int numOfCollision) {
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        if (i == numOfCollision) {
+        if (i == simNumOfCollision) {
             break;
         }
     }

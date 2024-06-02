@@ -48,8 +48,6 @@ public:
 
     void Move (double dt);
 
-    virtual void collide(Ball& other);
-
     virtual void collide(Container& other);
 
 

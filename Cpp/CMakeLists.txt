@@ -6,9 +6,9 @@ find_package(glfw3 REQUIRED)
 
 file(GLOB_RECURSE UTIL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/util/*.cpp")
 
-# file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/Vanilla/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/Vanilla/*.cpp")
 # file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/VDW/*.cpp")
-file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/LJ/*.cpp")
+# file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/LJ/*.cpp")
 add_executable(Cpp main.cpp ${SOURCE_FILES} ${UTIL_FILES})
 
 include_directories(lib)

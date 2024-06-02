@@ -4,7 +4,6 @@
 
 #include "Container.h"
 #include <cmath>
-#include <iostream>
 
 extern double posInf;
 

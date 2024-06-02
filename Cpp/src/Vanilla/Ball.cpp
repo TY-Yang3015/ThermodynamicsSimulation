@@ -6,7 +6,6 @@
 #include "Container.h"
 #include <utility>
 #include <limits>
-#include <iostream>
 
 
 double posInf = std::numeric_limits<double>::infinity();
