@@ -1,13 +1,11 @@
 """Simulation Classes."""
 import matplotlib.pyplot as plt
-import matplotlib
+# import matplotlib
 import numpy as np
 from thermosnooker.balls import Ball, Container
+from tqdm.auto import tqdm
 
-matplotlib.use('TkAgg')
-
-
-# from tqdm.auto import tqdm
+# matplotlib.use('TkAgg')
 
 
 class Simulation:
@@ -82,10 +80,10 @@ class Simulation:
         if animate:
             self.setup_figure()
 
-        # pbar = tqdm(range(num_collisions))
+        pbar = tqdm(range(num_collisions))
         for _ in range(num_collisions):
             self.next_collision()
-            # pbar.update(1)
+            pbar.update(1)
             if animate:
                 plt.gcf().canvas.draw_idle()
                 plt.pause(pause_time)
@@ -151,31 +149,24 @@ class SingleBallSimulation(Simulation):
         """
         dt_next = np.inf
         collision_balls = [[]]
-        for i, ball in enumerate(self._ball_list):
-            if ball is not self._ball_list[i]:
-                dt_current = ball.time_to_collision(self._ball_list[i])
-                if isinstance(dt_current, type(None)):
-                    dt_current = np.inf
-                # print('time to collide with ball:', dt)
-                if dt_current < dt_next:
-                    dt_next = dt_current
-                    collision_balls = [[ball, self._ball_list[i]]]
-
-        # print('pos:', [self.ball_list[i].pos() for i in range(len(self.ball_list))])
-        # print('num of ball:', len(self.ball_list))
+        for ball in self._ball_list:
+            for i in range(len(self._ball_list)):
+                if ball is not self._ball_list[i]:
+                    dt_current = ball.time_to_collision(self._ball_list[i])
+                    if isinstance(dt_current, type(None)):
+                        dt_current = np.inf
+                    if dt_current < dt_next:
+                        dt_next = dt_current
+                        collision_balls = [[ball, self._ball_list[i]]]
 
         for ball in self._ball_list:
             dt_current = ball.time_to_collision(self._container)
-            # print('time to collide with container:', dt)
             if dt_current < dt_next:
                 dt_next = dt_current
                 collision_balls = [[ball, self._container]]
 
             elif dt_current == dt_next:
                 collision_balls.append([ball, self._container])
-
-        # print('dt_next:', dt_next)
-        # print('number of collision event:', len(collision_balls))
 
         for ball in self._ball_list:
             ball.move(dt_next)
@@ -348,8 +339,9 @@ class MultiBallSimulation(Simulation):
 
         """
         velocity_list = np.zeros((number_of_balls, 2))
-        velocity_list[:, 0] = np.random.uniform(0, speed, number_of_balls)
-        velocity_list[:, 1] = np.sqrt(speed ** 2 - velocity_list[:, 0] ** 2)
+        angles = np.random.uniform(0, 2*np.pi, number_of_balls)
+        velocity_list[:, 0] = speed * np.cos(angles)
+        velocity_list[:, 1] = speed * np.sin(angles)
 
         return velocity_list
 
@@ -392,35 +384,28 @@ class MultiBallSimulation(Simulation):
         """
         dt_next = np.inf
         collision_balls = [[]]
-        for i, ball in enumerate(self.balls()):
-            if ball is not self.balls()[i]:
-                dt_current = ball.time_to_collision(self.balls()[i])
-                if dt_current is None:
-                    dt_current = np.inf
-                # print('time to collide with ball:', dt)
-                if dt_current < dt_next:
-                    dt_next = dt_current
-                    collision_balls = [[ball, self.balls()[i]]]
+        for ball in self._ball_list:
+            for i in range(len(self._ball_list)):
+                if ball is not self.balls()[i]:
+                    dt_current = ball.time_to_collision(self.balls()[i])
+                    if dt_current is None:
+                        dt_current = np.inf
+                    if dt_current < dt_next:
+                        dt_next = dt_current
+                        collision_balls = [[ball, self.balls()[i]]]
 
-                elif ((dt_current == dt_next) &
-                      ([self._ball_list[i], ball] not in collision_balls)):
-                    collision_balls.append([ball, self._ball_list[i]])
-
-        # print('pos:', [self.ball_list[i].pos() for i in range(len(self.ball_list))])
-        # print('num of ball:', len(self.ball_list))
+                    elif ((dt_current == dt_next) &
+                          ([self._ball_list[i], ball] not in collision_balls)):
+                        collision_balls.append([ball, self._ball_list[i]])
 
         for ball in self._ball_list:
             dt_current = ball.time_to_collision(self._container)
-            # print('time to collide with container:', dt)
             if dt_current < dt_next:
                 dt_next = dt_current
                 collision_balls = [[ball, self._container]]
 
             elif dt_current == dt_next:
                 collision_balls.append([ball, self._container])
-
-        # print('dt_next:', dt_next)
-        # print('number of collision event:', len(collision_balls))
 
         for ball in self._ball_list:
             ball.move(dt_next)

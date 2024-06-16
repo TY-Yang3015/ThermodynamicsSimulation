@@ -7,7 +7,6 @@
 #include "Container.h"
 #include "Ball.h"
 #include "GLFW/glfw3.h"
-#include "../util/Utils.h"
 #include <vector>
 
 class Simulation {
@@ -81,5 +80,9 @@ public:
     void setSystemLog (const bool& micro, const bool& macro);
 
     void writeMacroLogHeader ();
+
+    int runByTimeAnimationOff(double time, int frame);
+
+    int runByCollisionAnimationOff(int numOfCollision);
 
 };

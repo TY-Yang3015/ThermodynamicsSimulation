@@ -1,9 +1,16 @@
 """Analysis Module."""
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from thermosnooker.balls import Ball, Container
 from thermosnooker.simulations import (SingleBallSimulation, MultiBallSimulation)
 from thermosnooker.physics import maxwell
+from tqdm.auto import tqdm
+
+sns.set_theme()
+sns.set_context("paper")
+sns.set(rc={"xtick.bottom": True, "ytick.left": True})
+palette = sns.color_palette('pastel')
 
 
 def task9():
@@ -52,7 +59,7 @@ def task11():
         tuple[Figure, Firgure]: The histograms (distance from centre, inter-ball spacing).
     """
     sim = MultiBallSimulation()
-    sim.run(100, False)
+    sim.run(1000, False)
 
     positions = np.array([ball.pos() for ball in sim.balls()])
     distance_from_centre = np.linalg.norm(positions - sim.container().pos(), axis=-1)
@@ -65,12 +72,14 @@ def task11():
     fig1, ax1 = plt.subplots()
     ax1.hist(distance_from_centre, bins=50,
              edgecolor='black', linewidth=0.5)
-    ax1.set_title('Distance from Container Center')
+    ax1.set_title('Distance Distribution from Container Center')
+    ax1.set_xlabel('Distance from Container Center')
 
     fig2, ax2 = plt.subplots()
     ax2.hist(inter_ball_nonzero, bins=50,
              edgecolor='black', linewidth=0.5)
     ax2.set_title('Inter-ball Distance Distribution')
+    ax2.set_xlabel('Inter-ball Distance')
 
     return fig1, fig2
 
@@ -88,7 +97,7 @@ def task12():
                                                as well as pressure evolution.
     """
     sim = MultiBallSimulation()
-    num_collision = 100
+    num_collision = 4000
 
     ke_t = np.zeros(num_collision + 1)
     ke_t[0] = sim.kinetic_energy()
@@ -101,6 +110,7 @@ def task12():
 
     times = np.zeros(num_collision + 1)
 
+    pbar = tqdm(total=num_collision)
     for i in range(num_collision):
         sim.next_collision()
 
@@ -109,21 +119,31 @@ def task12():
         pressure_t[i + 1] = sim.pressure()
         times[i + 1] = sim.time()
 
+        pbar.update(1)
+
     fig1, ax1 = plt.subplots()
     ax1.plot(times, ke_t / ke_t[0])
     ax1.set_title('Total KE Evolution')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('System Total Kinetic Energy')
 
     fig2, ax2 = plt.subplots()
     ax2.plot(times, p_t[:, 0] / p_t[0, 0])
     ax2.set_title('Momentum x Component Evolution')
+    ax2.set_xlabel('Time')
+    ax2.set_ylabel(r'System Momentum $x$ Component')
 
     fig3, ax3 = plt.subplots()
     ax3.plot(times, p_t[:, 1] / p_t[0, 1])
     ax3.set_title('Momentum y Component Evolution')
+    ax3.set_xlabel('Time')
+    ax3.set_ylabel(r'System Momentum $y$ Component')
 
     fig4, ax4 = plt.subplots()
     ax4.plot(times, pressure_t)
     ax4.set_title('Pressure Evolution')
+    ax4.set_xlabel('Time')
+    ax4.set_ylabel('System Pressure')
 
     return fig1, fig2, fig3, fig4
 
@@ -151,7 +171,7 @@ def task13():
     for i, velocity in enumerate(velocities):
         print(1, i)
         sim = MultiBallSimulation(b_speed=velocity)
-        sim.run(100, False)
+        sim.run(1000, False)
         sim_pressures[i] = sim.pressure()
         temperatures[i] = sim.t_equipartition()
 
@@ -172,7 +192,7 @@ def task13():
     for i, radius in enumerate(volumes):
         print(2, i)
         sim = MultiBallSimulation(c_radius=radius)
-        sim.run(100, False)
+        sim.run(1000, False)
         sim_pressures[i] = sim.pressure()
         temperatures[i] = sim.t_equipartition()
 
@@ -239,6 +259,8 @@ def task14():
 
     fig, axis = plt.subplots()
     axis.plot(radii, ratio, label=r'$T_\text{eq}/T_\text{ideal}$')
+    axis.set_xlabel(r'Ball Radius')
+    axis.set_ylabel(r'')
     axis.legend()
 
     return fig
@@ -256,18 +278,19 @@ def task15():
         Figure: The speed histogram.
     """
     k_b = 1.38064852e-23
-    sim = MultiBallSimulation(c_radius=10., b_radius=0.001, nrings=6, multi=10)
-    sim.run(6000, False)
+    #sim = MultiBallSimulation(c_radius=10., b_radius=0.001, nrings=3, multi=5)
+    sim = MultiBallSimulation()
+    sim.run(2000, False)
 
     fig, axis = plt.subplots()
-    bins = 70
+    bins = 40
     axis.hist(sim.speeds(), density=True, bins=bins, label=r'Simulation')
     speeds = np.linspace(0, np.max(sim.speeds()))
-    m_b = maxwell(speeds, k_b * sim.t_ideal())
+    m_b = maxwell(speeds, k_b * sim.t_equipartition())
     m_b *= np.histogram(sim.speeds(), density=True, bins=bins)[0].max() / np.max(m_b)
     axis.plot(speeds, m_b
               , label=r'Ideal M-Boltzmann distribution', color='red')
-    axis.legend()
+    axis.legend(loc='upper right')
 
     return fig
 
@@ -284,14 +307,24 @@ if __name__ == "__main__":
 
     # Run task 12 function
     # FIG12_KE, FIG12_MOMX, FIG12_MOMY, FIG12_PT = task12()
+    # FIG12_KE.savefig('FIG12_KE.png', dpi=100)
+    # FIG12_MOMX.savefig('FIG12_MOMX.png', dpi=100)
+    # FIG12_MOMY.savefig('FIG12_MOMY.png', dpi=100)
+    # FIG12_PT.savefig('FIG12_PT.png', dpi=100)
 
     # Run task 13 function
-    # FIG13_PT, FIG13_PV, FIG13_PN = task13()
+    #FIG13_PT, FIG13_PV, FIG13_PN = task13()
+    #FIG13_PT.savefig('fig13_pt.png')
+    #FIG13_PV.savefig('fig13_pv.png')
+    #FIG13_PN.savefig('fig13_pn.png')
 
     # Run task 14 function
-    # FIG14 = task14()
+    #FIG14 = task14()
+    #FIG14.savefig('fig14.png')
 
     # Run task 15 function
     FIG15 = task15()
+    FIG15.savefig('fig15.png')
 
-    plt.show()
+
+

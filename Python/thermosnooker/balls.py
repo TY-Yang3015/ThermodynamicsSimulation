@@ -39,7 +39,7 @@ class Ball:
         self._radius = float(radius)
         self._mass = float(mass)
         self.__sanitise_input(self._pos, self._vel, self._radius, self._mass)
-        self._patch = plt.Circle((pos[0], pos[1]), radius
+        self._patch = plt.Circle((pos[0], pos[1]), radius=self._radius
                                  , facecolor='red',
                                  linewidth=1, edgecolor='black'
                                  )
@@ -224,7 +224,6 @@ class Ball:
             if isinstance(other, Container) or isinstance(self, Container):
                 d_t *= -1
             d_t -= np.dot(r_diff, v_diff)
-            # print('det:', dt)
             d_t *= 1 / np.dot(v_diff, v_diff)
 
             if d_t > 0:
@@ -233,23 +232,6 @@ class Ball:
                 return None
         else:
             return None
-
-    # elif isinstance(other, Container):
-    #    r = self.pos()
-    #    v = self.vel()
-    #    R = self.radius() - other.radius()
-
-    #    dt = np.sqrt(self.__determinant(r, v, R))
-    #    dt -= np.dot(r, v)
-    #    dt *= 1 / np.dot(v, v)
-
-    #    if dt > 0:
-    #        return dt
-    #    else:
-    #        return np.inf
-
-    # else:
-    #    raise ValueError('unknown class object.')
 
     def collide(self, other: any) -> None:
         """
@@ -290,17 +272,6 @@ class Ball:
         other.set_vel(v2)
 
         return None
-
-    # elif isinstance(other, Container):
-    #    r_hat = self.pos() / np.linalg.norm(self.pos())#
-
-    #    v_r = np.dot(self.vel(), r_hat) * r_hat
-    #   v_theta = self.vel() - v_r
-
-    #    dp = np.abs(2 * self.mass() * v_r)
-
-    #   self.set_vel(v_theta - v_r)
-    #    other.add_dp(dp)
 
 
 class Container(Ball):

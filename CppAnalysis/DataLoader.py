@@ -16,8 +16,11 @@ class DataLoader:
         self.ball_vel = self._load_raw("/ball_velocities.csv")
         self.ball_pos = self._load_raw("/ball_positions.csv")
 
-        self.container_vel = self._load_raw("/container_velocities.csv")
-        self.container_pos = self._load_raw("/container_positions.csv")
+        try:
+            self.container_vel = self._load_raw("/container_velocities.csv")
+            self.container_pos = self._load_raw("/container_positions.csv")
+        except FileNotFoundError:
+            print("no container information found")
 
         self.macro_dict = self._load_macro()
 

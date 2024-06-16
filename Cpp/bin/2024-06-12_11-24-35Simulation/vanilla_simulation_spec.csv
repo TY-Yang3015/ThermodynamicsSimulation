@@ -1,0 +1,2 @@
+containerRadius,ballRadius,ballSpeed,ballMass,numOfBalls
+1000,15,100,1e-22,168

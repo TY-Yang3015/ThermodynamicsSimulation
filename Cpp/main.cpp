@@ -5,11 +5,15 @@
 #pragma GCC optimize ("O3")
 
 int main() {
-    Simulation sim = Simulation(1500, 100, 100, 100, 1000, 4, 6);
-    sim.recordSimulationSpecs();
-    sim.setSystemLog(true, true);
-    // sim.runByCollision(100);
-    sim.runByTime(10000, 100000);
-    // sim.run(100, 100000);
+    int radList[] = {5, 10, 15, 20};
+    for (auto& rad : radList) {
+        Simulation sim = Simulation(1000, rad, 100, 1e-22, 800, 6, 8);
+        sim.recordSimulationSpecs();
+        sim.setSystemLog(true, true);
+        //sim.runByCollision(10000);
+        sim.runByTimeAnimationOff(10000, 20000);
+        // sim.runByCollisionAnimationOff(30000);
+        // sim.run(100, 100000);
+    }
 }
 

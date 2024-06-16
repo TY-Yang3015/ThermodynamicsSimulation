@@ -255,7 +255,36 @@ int Simulation::runByCollision(int simNumOfCollision) {
     return 0;
 }
 
+int Simulation::runByCollisionAnimationOff(int simNumOfCollision) {
 
+    if (logSystemMacro) {
+        writeMacroLogHeader();
+    }
+    int i = 0;
+    while (true) {
+
+        nextCollision();
+
+        if (logSystemMicro) {
+            this->logSystemMicroInformation();
+        }
+
+        if (logSystemMacro) {
+            this->logSystemMacroInformation();
+        }
+
+        this->logSystemChronology();
+
+        i += 1;
+        cout << float(i)/float(simNumOfCollision) << endl;
+
+        if (i == simNumOfCollision) {
+            break;
+        }
+    }
+
+    return 0;
+}
 
 int Simulation::runByTime(double time, int frame) {
     if (!glfwInit()) {
@@ -321,7 +350,36 @@ int Simulation::runByTime(double time, int frame) {
     return 0;
 }
 
+int Simulation::runByTimeAnimationOff(double time, int frame) {
+    int i = 0;
+    double frameTime = time / frame;
 
+    if (logSystemMacro) {
+        writeMacroLogHeader();
+    }
+
+    while (true) {
+
+        nextTimeStep(frameTime);
+
+        if (logSystemMicro) {
+            this->logSystemMicroInformation();
+        }
+
+        if (logSystemMacro) {
+            this->logSystemMacroInformation();
+        }
+
+        this->logSystemChronology();
+
+        i++;
+        cout << float(i)/float(frame) << endl;
+        if (i > frame) {
+            break;
+        }
+    }
+    return 0;
+}
 
 double Simulation::time() const {
     return this->currentTime;

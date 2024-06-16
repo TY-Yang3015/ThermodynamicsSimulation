@@ -9,7 +9,6 @@
 #include "Container.h"
 #include "Ball.h"
 #include "GLFW/glfw3.h"
-#include "../util/Utils.h"
 
 class Simulation {
 

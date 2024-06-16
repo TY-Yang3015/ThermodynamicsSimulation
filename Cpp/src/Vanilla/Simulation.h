@@ -82,4 +82,8 @@ public:
 
     void writeMacroLogHeader ();
 
+    int runByTimeAnimationOff(double time, int frame);
+
+    int runByCollisionAnimationOff(int numOfCollision);
+
 };
